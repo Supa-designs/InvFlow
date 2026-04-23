@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Agent/AI configuration (local)
+.agents/
+.claude/
+.gemini/
+
+# Build logs and artifacts
+build_log.txt
+
+# Test generation artifacts
+testsprite_tests/
+
+# Skills lock file (auto-generated)
+skills-lock.json

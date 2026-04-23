@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InvFlow
 
-## Getting Started
+InvFlow is a modern SaaS Multi-tenant Inventory Management System. It is the modernized successor to the legacy `lovableinv` application, built to handle advanced multitenancy, role-based access, and robust audit logging.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This project strictly enforces the following stack:
+- **Framework**: Next.js 16.2 (App Router)
+- **Database**: Neon (PostgreSQL) + Drizzle ORM (0.45.2)
+- **Authentication**: Clerk (with Organizations for multitenancy)
+- **Styling**: Tailwind CSS v4 + Shadcn UI
+- **Package Manager**: Bun (mandatory)
+- **Forms & State**: TanStack Form, `nuqs` (URL state)
+- **Server Actions**: `next-safe-action`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Architecture
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Multitenancy**: Handled with shared tables plus mandatory `tenant_id` scoping.
+- **Repository Pattern**: ALL database interactions MUST go through dedicated repositories (e.g., `ProductRepository`) located inside specific feature modules.
+- **Audit Logging**: Any write operation (create/update/delete) triggered from a Server Action must call `createAuditEntry` from the audit service to maintain system-wide history.
+- **Modules**: Code is separated by functional domain in `/src/features/` (e.g., `products`, `categories`, `movements`).
+- **Organizations**: Clerk Organizations is the source of truth for members, roles, and invitations.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Developer Setup
 
-## Learn More
+1. **Install Dependencies** (Strictly use Bun):
+   ```bash
+   bun install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Environment Variables**:
+   Copy `.env.example` to `.env.local` and populate Neon connection strings, Clerk publishable/secret keys, and any other required tokens (Upstash, Polar.sh, etc.).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Database Migrations / Push**:
+   ```bash
+   bunx drizzle-kit push
+   ```
+   For a clean bootstrap you can also apply [`drizzle/0001_shared_tenant_model.sql`](/Users/fernan/Dev/turboinv/apps/invflow/drizzle/0001_shared_tenant_model.sql).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Run Development Server**:
+   ```bash
+   bun dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000)
 
-## Deploy on Vercel
+## Runtime Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/members` uses a custom UI backed by Clerk Organizations APIs.
+- `/audit` exposes the application audit log.
+- `/settings` contains feature toggles, scanner setup, and the import module.
+- `/api/lookup/isbn` uses Upstash Redis cache with Open Library and Google Books fallback.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Design Guidelines
+
+- Do not modify `globals.css` variable definitions unless changing core branding explicitly. Always use the predefined Tailwind CSS variable tokens.
+- All forms should prefer robust Zod validation.
+
+---
+*Built with ❤️ and Next.js*
