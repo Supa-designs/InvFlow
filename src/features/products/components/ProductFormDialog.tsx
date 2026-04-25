@@ -93,6 +93,18 @@ export function ProductFormDialog({
     });
   }, [editProduct, initialBarcode, isLibrary, open]);
 
+  useEffect(() => {
+    if (!open || !isLibrary || isEdit) return;
+    const normalizedIsbn = normalizeIsbn(form.isbn);
+    if (normalizedIsbn.length < 10) return;
+
+    const timeout = window.setTimeout(() => {
+      void lookupIsbn(normalizedIsbn);
+    }, 450);
+
+    return () => window.clearTimeout(timeout);
+  }, [form.isbn, isEdit, isLibrary, open]);
+
   async function lookupIsbn(rawIsbn: string) {
     const isbn = normalizeIsbn(rawIsbn);
     if (!isbn || isbn.length < 10) return;

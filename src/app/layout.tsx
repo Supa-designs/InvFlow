@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { ClerkProvider } from '@clerk/nextjs';
+import { esMX } from '@clerk/localizations';
 import { TenantFeaturesProvider } from '@/hooks/useTenantFeatures';
 
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -30,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={esMX}>
       <html
         lang="en"
         className={cn(
