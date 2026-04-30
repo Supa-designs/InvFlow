@@ -11,6 +11,40 @@ import { DashboardChart } from '@/components/dashboard/dashboard-chart';
 import { resolveEffectiveBusinessType } from '@/lib/tenants/business-type';
 import type { FeatureKey } from '@/hooks/useTenantFeatures';
 
+function formatActivity(item: { action: string; entityType: string; entityId?: string | null; diff?: any }) {
+  const diff = (item.diff ?? {}) as Record<string, any>;
+  const after = (diff.after ?? {}) as Record<string, any>;
+  const before = (diff.before ?? {}) as Record<string, any>;
+  const name =
+    after.name ||
+    before.name ||
+    after.title ||
+    before.title ||
+    after.productName ||
+    before.productName ||
+    after.categoryName ||
+    before.categoryName ||
+    after.sku ||
+    before.sku ||
+    item.entityId ||
+    item.entityType;
+
+  const actions: Record<string, string> = {
+    "product.created": "agregó el producto",
+    "product.updated": "actualizó el producto",
+    "product.deleted": "eliminó el producto",
+    "category.created": "creó la categoría",
+    "category.deleted": "eliminó la categoría",
+    "import.completed": "completó la importación",
+    "import.appended": "agregó nuevos registros",
+  };
+
+  return {
+    action: actions[item.action] || item.action.replaceAll(".", " "),
+    target: item.entityType === "import" ? `${after.imported ?? 0} títulos` : `"${name}"`,
+  };
+}
+
 export default async function DashboardPage() {
   const { orgId } = await auth();
   if (!orgId) return <div>No organization context</div>;
@@ -163,8 +197,17 @@ export default async function DashboardPage() {
                 {recentAudit.map((a) => (
                   <div key={a.id} className="flex items-start justify-between gap-2 text-sm">
                     <div className="min-w-0 flex-1">
-                      <span className="font-medium block truncate">{a.entityType}: {a.action}</span>
-                      <span className="text-muted-foreground text-xs">{a.clerkUserId}</span>
+                      {(() => {
+                        const activity = formatActivity(a as any);
+                        return (
+                          <>
+                            <span className="font-medium block truncate">
+                              {activity.action} <span className="text-foreground">{activity.target}</span>
+                            </span>
+                            <span className="text-muted-foreground text-xs">{a.clerkUserId}</span>
+                          </>
+                        );
+                      })()}
                     </div>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {a.createdAt?.toLocaleDateString()}

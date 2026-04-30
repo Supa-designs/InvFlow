@@ -14,7 +14,7 @@ export function AppHotkeys() {
 
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        document.getElementById("global-search-input")?.focus();
+        window.dispatchEvent(new CustomEvent("invflow:open-global-search"));
         return;
       }
 
