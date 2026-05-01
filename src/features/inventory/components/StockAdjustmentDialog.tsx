@@ -21,9 +21,15 @@ interface StockAdjustmentDialogProps {
   productId: string;
   productName: string;
   currentStock: number;
+  compact?: boolean;
 }
 
-export function StockAdjustmentDialog({ productId, productName, currentStock }: StockAdjustmentDialogProps) {
+export function StockAdjustmentDialog({
+  productId,
+  productName,
+  currentStock,
+  compact = false,
+}: StockAdjustmentDialogProps) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"entry" | "exit">("entry");
   const [quantity, setQuantity] = useState<number>(1);
@@ -59,11 +65,16 @@ export function StockAdjustmentDialog({ productId, productName, currentStock }: 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger 
         render={
-          <Button variant="outline" size="sm" className="gap-2" />
+          <Button
+            variant={compact ? "ghost" : "outline"}
+            size={compact ? "icon" : "sm"}
+            className={compact ? "h-8 w-8" : "gap-2"}
+            onClick={(event) => event.stopPropagation()}
+          />
         }
       >
-        <PackagePlus className="w-4 h-4" />
-        Ajustar Stock
+        <PackagePlus className="h-4 w-4" />
+        {compact ? null : "Ajustar Stock"}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -3,6 +3,7 @@ import { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { products } from '@/lib/db/schema/tenant/products';
 
 type DbInstance = NeonHttpDatabase<any>;
+type ProductInsert = Omit<typeof products.$inferInsert, 'tenantId'>;
 
 export class ProductRepository {
   private db: DbInstance;
@@ -64,12 +65,20 @@ export class ProductRepository {
       .orderBy(desc(products.createdAt));
   }
 
-  async create(data: Omit<typeof products.$inferInsert, 'tenantId'>) {
+  async create(data: ProductInsert) {
     const result = await this.db
       .insert(products)
       .values({ ...data, tenantId: this.tenantId })
       .returning();
     return result[0];
+  }
+
+  async createMany(data: ProductInsert[]) {
+    if (data.length === 0) return [];
+    return this.db
+      .insert(products)
+      .values(data.map((item) => ({ ...item, tenantId: this.tenantId })))
+      .returning();
   }
 
   async update(id: string, data: Partial<typeof products.$inferInsert>) {

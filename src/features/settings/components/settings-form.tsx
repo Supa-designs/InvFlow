@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ALL_FEATURES, getDefaultFeatures, type BusinessType, type FeatureKey } from "@/hooks/useTenantFeatures";
 import { useTenantFeatures } from "@/hooks/useTenantFeatures";
 import { ImportPanel } from "@/features/import/components/import-panel";
@@ -20,7 +19,7 @@ export function SettingsForm({ tenant, organizationName }: { tenant: any; organi
   const router = useRouter();
   const { updateFeaturesLocal } = useTenantFeatures();
   const [name, setName] = useState(organizationName);
-  const [businessType, setBusinessType] = useState<BusinessType>(
+  const [businessType] = useState<BusinessType>(
     resolveEffectiveBusinessType(tenant.businessType, tenant.featuresConfig),
   );
   const [features, setFeatures] = useState<Record<FeatureKey, boolean>>(tenant.featuresConfig || getDefaultFeatures('generic'));
@@ -73,21 +72,6 @@ export function SettingsForm({ tenant, organizationName }: { tenant: any; organi
         </div>
 
         <div className="max-w-sm space-y-4">
-          <div className="space-y-2">
-            <Label>Tipo de negocio</Label>
-            <Select value={businessType} onValueChange={(value) => setBusinessType(value as BusinessType)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="library">Biblioteca</SelectItem>
-                <SelectItem value="generic">General</SelectItem>
-                <SelectItem value="hardware_store">Ferretería</SelectItem>
-                <SelectItem value="warehouse">Almacén</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <Label htmlFor="organization-name">Nombre de organización</Label>
           <Input
             id="organization-name"

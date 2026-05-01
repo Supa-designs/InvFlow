@@ -6,6 +6,7 @@ import { Redis } from '@upstash/redis';
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
+const googleBooksApiKey = process.env.GOOGLE_BOOKS_API_KEY;
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
@@ -66,8 +67,13 @@ export async function GET(req: NextRequest) {
         source: 'openlibrary',
       };
     } else {
+      const googleBooksUrl = new URL("https://www.googleapis.com/books/v1/volumes");
+      googleBooksUrl.searchParams.set("q", `isbn:${isbn}`);
+      if (googleBooksApiKey) {
+        googleBooksUrl.searchParams.set("key", googleBooksApiKey);
+      }
       const googleBooksResponse = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`,
+        googleBooksUrl.toString(),
         { next: { revalidate: 60 * 60 * 24 * 30 } },
       );
       const googleBooksData = await googleBooksResponse.json();

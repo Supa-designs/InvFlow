@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 type CategoryOption = {
   id: string;
   name: string;
+  color?: string | null;
 };
 
 function normalizeIsbn(value: string) {
@@ -207,21 +208,30 @@ export function ProductFormDialog({
   }
 
   const categoryTriggerLabel = form.categoryId
-    ? categories.find((category) => category.id === form.categoryId)?.name || "Sin categoría"
-    : "Sin categoría";
+    ? categories.find((category) => category.id === form.categoryId) || null
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+    <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar producto" : "Crear producto"}</DialogTitle>
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            {isEdit ? "Editar producto" : "Crear producto"}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            {isLibrary
+              ? "Completa los datos principales del título y sus copias."
+              : "Registra el producto con los campos base del inventario."}
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isLibrary ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="isbn">ISBN</Label>
+                <Label htmlFor="isbn" className="text-xs uppercase tracking-wide text-muted-foreground">
+                  ISBN
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     id="isbn"
@@ -244,7 +254,9 @@ export function ProductFormDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Título</Label>
+                <Label htmlFor="title" className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Título
+                </Label>
                 <Input
                   id="title"
                   value={form.title}
@@ -255,7 +267,9 @@ export function ProductFormDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="author">Autor</Label>
+                <Label htmlFor="author" className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Autor
+                </Label>
                 <Input
                   id="author"
                   value={form.author}
@@ -280,7 +294,9 @@ export function ProductFormDialog({
 
           <div className={`grid gap-4 ${showCategories ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
             <div className="space-y-2">
-              <Label htmlFor="sku">SKU</Label>
+              <Label htmlFor="sku" className="text-xs uppercase tracking-wide text-muted-foreground">
+                SKU
+              </Label>
               <Input
                 ref={skuInputRef}
                 id="sku"
@@ -293,23 +309,32 @@ export function ProductFormDialog({
 
             {showCategories ? (
               <div className="space-y-2">
-                <Label>Categoría</Label>
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Categoría
+                </Label>
                 <Select
-                  value={form.categoryId || undefined}
+                  value={form.categoryId || "__empty__"}
                   onValueChange={(value) =>
                     setForm((current) => ({
                       ...current,
-                      categoryId: String(value),
+                      categoryId: value === "__empty__" ? "" : String(value),
                     }))
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue>{categoryTriggerLabel}</SelectValue>
+                    <SelectValue placeholder="Asignar" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__empty__">Sin asignar</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.name}
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="h-3.5 w-3.5 rounded-full border border-background shadow-sm"
+                            style={{ backgroundColor: category.color || "#94a3b8" }}
+                          />
+                          {category.name}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -318,7 +343,9 @@ export function ProductFormDialog({
             ) : null}
 
             <div className="space-y-2">
-              <Label htmlFor="copiesCount">Ejemplares</Label>
+              <Label htmlFor="copiesCount" className="text-xs uppercase tracking-wide text-muted-foreground">
+                Ejemplares
+              </Label>
               <Input
                 id="copiesCount"
                 type="number"
@@ -337,7 +364,9 @@ export function ProductFormDialog({
           {showPricing ? (
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="costPrice">Costo</Label>
+                <Label htmlFor="costPrice" className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Costo
+                </Label>
                 <Input
                   id="costPrice"
                   type="number"
@@ -350,7 +379,9 @@ export function ProductFormDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="salePrice">Precio</Label>
+                <Label htmlFor="salePrice" className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Precio
+                </Label>
                 <Input
                   id="salePrice"
                   type="number"
@@ -365,7 +396,9 @@ export function ProductFormDialog({
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
+            <Label htmlFor="notes" className="text-xs uppercase tracking-wide text-muted-foreground">
+              Notas
+            </Label>
             <Textarea
               id="notes"
               rows={5}

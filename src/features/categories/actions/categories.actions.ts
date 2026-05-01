@@ -7,6 +7,7 @@ import { CategoryRepository } from '../repositories/categories.repository';
 import { createAuditEntry } from '@/features/audit/services/audit.service';
 import { revalidatePath } from 'next/cache';
 import { categorySchema, deleteCategorySchema } from '../schemas/category.schema';
+import { invalidateTenantProductCache } from '@/features/products/services/products-cache.service';
 
 export const createCategoryAction = actionClient
   .schema(categorySchema)
@@ -29,7 +30,9 @@ export const createCategoryAction = actionClient
       after: newCategory,
     });
 
+    await invalidateTenantProductCache(tenantId);
     revalidatePath('/categories');
+    revalidatePath('/products');
     return newCategory;
   });
 
@@ -53,6 +56,8 @@ export const deleteCategoryAction = actionClient
       });
     }
 
+    await invalidateTenantProductCache(tenantId);
     revalidatePath('/categories');
+    revalidatePath('/products');
     return deleted;
   });

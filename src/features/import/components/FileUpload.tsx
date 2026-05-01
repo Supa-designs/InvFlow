@@ -14,11 +14,19 @@ export function FileUpload({
         accept=".csv,.xls,.xlsx"
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) onFileSelected(file);
+          if (!file) return;
+          const validExtension = /\.(csv|xls|xlsx)$/i.test(file.name);
+          const validSize = file.size <= 10 * 1024 * 1024;
+          if (!validExtension || !validSize) {
+            event.currentTarget.value = "";
+            return;
+          }
+          onFileSelected(file);
+          event.currentTarget.value = "";
         }}
       />
       <p className="text-sm text-muted-foreground">
-        Soporta archivos CSV, XLS y XLSX.
+        Soporta archivos CSV, XLS y XLSX de hasta 10 MB.
       </p>
     </div>
   );

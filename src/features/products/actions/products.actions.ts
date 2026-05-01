@@ -1,31 +1,15 @@
 "use server";
 
+import { z } from "zod";
+
 import { actionClient } from '@/lib/safe-action';
-import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireTenantContext } from '@/lib/db/tenant';
 import { ProductRepository } from '../repositories/products.repository';
 import { createAuditEntry } from '@/features/audit/services/audit.service';
 import { revalidatePath } from 'next/cache';
-
-export const productSchema = z.object({
-  description: z.string().max(500).optional().nullable(),
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  sku: z.string().optional().nullable(),
-  barcode: z.string().optional().nullable(),
-  categoryId: z.string().uuid().optional().nullable(),
-  stockQuantity: z.number().int().default(0),
-  minStock: z.number().int().default(0),
-  costPrice: z.string().optional().nullable(),
-  salePrice: z.string().optional().nullable(),
-  trackingMode: z.enum(['sku', 'serial']).default('sku'),
-  imageUrl: z.string().url().optional().nullable(),
-  metadata: z.any().optional(),
-});
-
-export const productUpdateSchema = productSchema.partial().extend({
-  id: z.string().uuid(),
-});
+import { productSchema, productUpdateSchema } from '../schemas/product.schema';
+import { invalidateTenantProductCache } from '../services/products-cache.service';
 
 export const createProductAction = actionClient
   .schema(productSchema)
@@ -57,6 +41,7 @@ export const createProductAction = actionClient
       after: newProduct,
     });
 
+    await invalidateTenantProductCache(tenantId);
     revalidatePath('/products');
     return newProduct;
   });
@@ -98,6 +83,36 @@ export const updateProductAction = actionClient
       after: updated,
     });
 
+    await invalidateTenantProductCache(tenantId);
     revalidatePath('/products');
     return updated;
+  });
+
+export const deleteProductAction = actionClient
+  .schema(z.object({ id: z.string().uuid() }))
+  .action(async ({ parsedInput }) => {
+    const { tenantId, userId } = await requireTenantContext();
+    const repo = new ProductRepository(db, tenantId);
+
+    const existing = await repo.getById(parsedInput.id);
+    if (!existing) {
+      throw new Error('Producto no encontrado');
+    }
+
+    const deleted = await repo.delete(parsedInput.id);
+
+    await createAuditEntry({
+      db,
+      tenantId,
+      clerkUserId: userId,
+      action: 'product.deleted',
+      entityType: 'product',
+      entityId: parsedInput.id,
+      before: existing,
+      after: deleted,
+    });
+
+    await invalidateTenantProductCache(tenantId);
+    revalidatePath('/products');
+    return deleted;
   });
